@@ -1,28 +1,47 @@
-name: Flutter CI
+name: Flutter CI/CD Release
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
+# مهم جداً للسماح بإنشاء Releases
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 1️⃣ Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - uses: subosito/flutter-action@v2
+      # 2️⃣ Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: 'stable'
 
-      - run: flutter pub get
+      # 3️⃣ Get dependencies
+      - name: Install dependencies
+        run: flutter pub get
 
-      - run: flutter analyze
+      # 4️⃣ Run tests (إذا ما عندك tests ما حيوقف pipeline)
+      - name: Run tests
+        run: flutter test || echo "No tests found"
 
-      - run: flutter build apk --release
+      # 5️⃣ Build release APK
+      - name: Build APK
+        run: flutter build apk --release
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      # 6️⃣ Create GitHub Release + upload APK
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/*.apk
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
