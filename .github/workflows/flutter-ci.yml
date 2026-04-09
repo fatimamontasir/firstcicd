@@ -1,5 +1,6 @@
 name: Flutter CI Pro
-
+permissions:
+  contents: write
 on:
   push:
     branches:
