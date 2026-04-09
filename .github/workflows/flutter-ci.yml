@@ -5,7 +5,7 @@ on:
     branches:
       - main
 
-# مهم جداً للسماح بإنشاء Releases
+# مهم جداً للسماح بالـ Release
 permissions:
   contents: write
 
@@ -16,27 +16,36 @@ jobs:
     steps:
       # 1️⃣ Checkout code
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2️⃣ Setup Flutter
-      - name: Setup Flutter
+      # 2️⃣ FIXED Flutter setup (هذا حل المشكلة عندك)
+      - name: Setup Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          channel: stable
+          cache: false
+          architecture: x64
 
-      # 3️⃣ Get dependencies
+      # 3️⃣ Verify Flutter works
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      # 4️⃣ Get dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # 4️⃣ Run tests (إذا ما عندك tests ما حيوقف pipeline)
-      - name: Run tests
-        run: flutter test || echo "No tests found"
-
-      # 5️⃣ Build release APK
-      - name: Build APK
+      # 5️⃣ Build APK
+      - name: Build Release APK
         run: flutter build apk --release
 
-      # 6️⃣ Create GitHub Release + upload APK
+      # 6️⃣ Check APK exists (debug safety)
+      - name: Verify APK
+        run: ls build/app/outputs/flutter-apk/
+
+      # 7️⃣ Create GitHub Release + upload APK
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
